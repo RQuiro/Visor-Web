@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Visor web</title>
+ <style>
+body {
+  background-image: url('binary-1254502_1280.png');
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: 100%;
+}
+</style> 
+<style>
+p{
+  border: 2px;
+  padding: 30px;
+}
+div.transbox {
+	margin: 30px;
+    background-color: black;
+    opacity: 0.80;
+    filter: alpha(opacity=60); /* For IE8 and earlier */
+}
+
+div.transbox p {
+    margin: 10%;
+    font-weight: bold;
+    color: #000000;
+</style>
+
+<meta charset="utf-8">
+    <title>Visor webGIS (OpenLayers): Control de capas</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.1.1/css/ol.css" type="text/css">
+    <link rel="stylesheet" href="https://unpkg.com/ol-layerswitcher@3.4.0/src/ol-layerswitcher.css" />
+	<style>
+      .map {
+        height: 700px;
+        width: 100%;
+      }
+	</style>
+</head>
+<body>
+<div class="background">
+  <div class="transbox">
+    <h1 style = "font-size:300%;color: yellow;text-align:center;">Visor áreas con riesgo de inundación.</></h1>
+	<h2 style = "font-size:200%;color: yellow;text-align:center;">Ricardo Quiroga García</h2>
+  </div>
+</div>
+<p style="background-color:white;opacity:0.90;font-size:150%;text-align: justify;"><b>Visor Web elaborado como ejercicio de participación para la asignatura de desarrollo de aplicaciones SIG Web,
+ asignatura impartida en el master de Geoinformática para le Gestión de los Recursos Naturales de la Universidad de León.</b><br>
+<br>
+"La geoinformática utiliza algoritmos matemáticos y técnicas informáticas avanzadas para resolver problemáticas de índole geográfica mediante el desarrollo o aplicación de programas informáticos y modelos matemáticos. Por esta razón, la geoinformática 
+es transversal a cualquier proyecto de planificación o gestión de recursos naturales.
+La geoinformática y las geotecnologías están suponiendo ya una revolución en la forma de entender la gestión de recursos naturales. Sin embargo, no existe una oferta a escala 
+autonómica o estatal que cubra toda la demanda de formación universitaria existente en este ámbito.
+El <a href="http://mastergeoinformatica.unileon.es/#presentacion">Máster Universitario en Geoinformática para la gestión de recursos naturales</a>
+Máster Universitario en Geoinformática para la gestión de recursos naturales, ofertado por la Escuela de Ingeniería Agraria y Forestal (EIAF), en su Sección del Campus de
+ Ponferrada ofrecerá una vía de especialización profesional única en este ámbito. ". </i></p>
+ 
+<br>
+<br>
+<div id="mimapa" class="map"></div>
+    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.1.1/build/ol.js"></script>
+    <script src="https://unpkg.com/ol-layerswitcher@3.4.0"></script>
+    <script type="text/javascript">
+		// *Capa base OSM*
+		const OSM = new ol.layer.Tile({
+			title: 'OpenStreet Maps',
+			type: 'base',
+			visible:true,
+			source: new ol.source.OSM()
+		});
+		// *Capa superpuesta*
+       	const MDT = new ol.layer.Image({
+			title: 'MDT 05',
+			type: 'capa',
+			visible: false,
+			source: new ol.source.ImageWMS({
+				url: 'https://servicios.idee.es/wms-inspire/mdt?',
+				params: {'LAYERS': 'EL.GridCoverage'},
+			})
+		});
+        const inundables = new ol.layer.Image({
+            title: "Áreas con riesgo de inundación",
+			visible: true,
+            source: new ol.source.ImageWMS({
+                url: 'https://wms.mapama.gob.es/sig/Agua/ZI_ARPSIs/2011/wms.aspx?',
+                params: {'LAYERS': 'NZ.RiskZone'},
+            })
+		});
+		// *Estilo del marcador personalizado*
+		var estilomarcador = new ol.style.Style({
+			image: new ol.style.Icon({
+			  anchor: [0.5, 0.5], // point of the icon which will correspond to marker's location. Default: [0.5, 0.5]
+			  size: [38, 98], // size of the icon
+			  opacity: 0.75,
+			  scale: 0.75,
+			  src: 'map-42871.png'
+				})
+			});
+		// *Marcador*
+		var marcador = new ol.layer.Vector({
+			title: "Campus de Ponferrada,ULe",
+			source: new ol.source.Vector({
+				features: [
+					new ol.Feature({
+						geometry: new ol.geom.Point(ol.proj.fromLonLat([-6.5833207, 42.550606]))
+					}), 
+				]
+			}),
+			style: estilomarcador
+		});
+        // *Grupos del árbol*
+        const capasBase = new ol.layer.Group({
+            'title': 'Mapas base:',
+            layers: [
+                OSM,
+            ]
+        });
+        const capasSuperpuestas = new ol.layer.Group({
+                title: 'Capas superpuestas',
+                layers: [
+                    MDT,
+					inundables,
+					marcador,
+                ]
+        });
+        // *Crear el mapa y asignar las capas*
+        let map = new ol.Map({
+            target: 'mimapa',
+            view: new ol.View({
+                center: ol.proj.fromLonLat([-6.5833207, 42.550606]),
+                zoom: 8
+            }),
+            layers: [
+                capasBase,
+				capasSuperpuestas
+            ]
+        });
+		// *Mostrar el árbol*
+        const layerSwitcher = new ol.control.LayerSwitcher({
+            tipLabel: 'Árbol de Capas'
+        });
+        map.addControl(layerSwitcher);
+    </script>
+</body>
+</html>
